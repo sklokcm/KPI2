@@ -1,0 +1,83 @@
+erDiagram
+	USER ||--o{ ORDER : creates
+	USER ||--o{ SUPPORT_MESSAGE : writes
+	USER ||--|| CART : owns
+	MANAGER }o--o{ PRODUCT : updates
+	PRODUCT }o--o{ CATEGORY : belongs_to
+	CART ||--o{ CART_ITEM : contains
+	PRODUCT ||--o{ CART_ITEM : added_to
+	ORDER ||--|{ ORDER_ITEM : contains
+	PRODUCT ||--o{ ORDER_ITEM : ordered_as
+	ORDER ||--o{ PAYMENT : has
+
+	USER {
+		int user_id PK
+		string name
+		string password_hash
+		string phone_number
+		string email
+		string address
+		string postcode
+	}
+
+	MANAGER {
+		int manager_id PK
+		string name
+		string password_hash
+	}
+
+	PRODUCT {
+		int product_id PK
+		string name
+		string description
+		decimal price
+		int stock_amount
+	}
+
+	CATEGORY {
+		int category_id PK
+		string name
+		string description
+	}
+
+	CART {
+		int cart_id PK
+		int user_id FK
+		decimal total_price
+	}
+
+	CART_ITEM {
+		int cart_id PK, FK
+		int product_id PK, FK
+		int quantity
+	}
+
+	ORDER {
+		int order_id PK
+		int user_id FK
+		string number
+		string status
+		datetime order_time
+	}
+
+	ORDER_ITEM {
+		int order_id PK, FK
+		int product_id PK, FK
+		int quantity
+		decimal unit_price
+	}
+
+	PAYMENT {
+		int payment_id PK
+		int order_id FK
+		decimal total_price
+		string status
+		datetime payment_time
+	}
+
+	SUPPORT_MESSAGE {
+		int message_id PK
+		int user_id FK
+		string message_text
+		datetime message_time
+	}
