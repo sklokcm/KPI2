@@ -3,47 +3,51 @@
 * user_id
 * name
 * password_hash
-* phonenumber
+* phone_number
 * e-mail
-* adress
-* postcode
-2. MANAGER
+2. ADDRESS
+* address_id
+* city
+* street
+* building
+* post_code
+3. MANAGER
 * manager_id
 * name
 * password_hash
-3. PRODUCT
+4. PRODUCT
 * product_id
 * name
 * description
 * price
 * stock_amount
-4. CATEGORY
+5. CATEGORY
 * category_id
 * name
 * description
-5. CART
+6. CART
 * cart_id
 * total_price
-6. CART_ITEM
+7. CART_ITEM
 * cart_id
 * product_id
 * quntity
-7. ORDER
+8. ORDER
 * order_id
 * number
 * status
 * order_time
-8. ORDER_ITEM
+9. ORDER_ITEM
 * order_id
 * product_id
 * quntity
 * unit_price
-9. PAYMENT
+10. PAYMENT
 * payment_id
 * total_price
 * status
 * payment_time
-10. SUPPORT_MESSAGE
+11. SUPPORT_MESSAGE
 * message_id
 * user_id
 * manager_id
@@ -54,6 +58,7 @@
 
 ## Зв'язки
 * Користувач може створити від 0 до N замовлень
+* У користувача може бути багато адрес, кожна адреса відноситься до одного користувача
 * Користувач може написати в підтримку від 0 до N разів
 * Менеджер може оновлювати багато товарів
 * Товар мають право редагувати багато менеджерів

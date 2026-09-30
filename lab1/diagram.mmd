@@ -1,6 +1,7 @@
 erDiagram
 	USER ||--|| CART : owns
 	USER ||--o{ ORDER : creates
+	USER ||--o{ ADDRESS : has
 	USER ||--o{ SUPPORT_MESSAGE : writes
 	MANAGER }o--o{ PRODUCT : updates
 	PRODUCT }o--o{ CATEGORY : belongs_to
@@ -17,8 +18,15 @@ erDiagram
 		string password_hash
 		string phone_number
 		string email
-		string address
-		string postcode
+	}
+
+	ADDRESS {
+		int address_id PK
+		int user_id FK
+		string city
+		string street
+		string building
+		string post_code
 	}
 
 	MANAGER {
