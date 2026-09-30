@@ -4,9 +4,10 @@
 * name
 * password_hash
 * phone_number
-* e-mail
+* email
 2. ADDRESS
 * address_id
+* user_id
 * city
 * street
 * building
@@ -27,7 +28,7 @@
 * description
 6. CART
 * cart_id
-* total_price
+* user_id
 7. CART_ITEM
 * cart_id
 * product_id
