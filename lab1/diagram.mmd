@@ -2,6 +2,7 @@ erDiagram
 	USER ||--|| CART : owns
 	USER ||--o{ ORDER : creates
 	USER ||--o{ ADDRESS : has
+	ADDRESS ||--o{ ORDER : delivers to
 	USER ||--o{ SUPPORT_MESSAGE : writes
 	MANAGER }o--o{ PRODUCT : updates
 	PRODUCT }o--o{ CATEGORY : belongs_to
@@ -64,6 +65,7 @@ erDiagram
 	ORDER {
 		int order_id PK
 		int user_id FK
+		int address_id FK
 		string number
 		string status
 		datetime order_time
