@@ -46,6 +46,7 @@
 10. SUPPORT_MESSAGE
 * message_id
 * user_id
+* manager_id
 * message_text
 * message_time 
 * status
