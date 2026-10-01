@@ -2,7 +2,7 @@ erDiagram
 	USER ||--|| CART : owns
 	USER ||--o{ ORDER : creates
 	USER ||--o{ ADDRESS : has
-	ADDRESS ||--o{ ORDER : delivers to
+	ADDRESS ||--o{ ORDER : delivers_to
 	USER ||--o{ SUPPORT_MESSAGE : writes
 	MANAGER }o--o{ PRODUCT : updates
 	PRODUCT }o--o{ CATEGORY : belongs_to
