@@ -26,69 +26,64 @@ ER-діаграма описує основні сутності системи:
 
 Також ADR-0001 визначає, що служба доставки є зовнішнім актором, який лише отримує інформацію про замовлення, але не змінює дані в системі напряму.
 
-## UML Use Case Diagram
+## UML Use Case Diagram (Mermaid)
 
-```plantuml
-@startuml
-left to right direction
-skinparam shadowing false
-skinparam packageStyle rectangle
+```mermaid
+flowchart LR
+    User[Користувач]
+    Manager[Менеджер]
+    SupportManager[Менеджер підтримки]
+    Administrator[Адміністратор]
+    Delivery[Служба доставки]
+    Payment[Сервіс оплати]
 
-actor "Користувач" as User
-actor "Менеджер" as Manager
-actor "Менеджер підтримки" as SupportManager
-actor "Адміністратор" as Administrator
-actor "Служба доставки" as Delivery
-actor "Сервіс оплати" as Payment
+    Manager ---|спеціалізація| SupportManager
+    Manager ---|спеціалізація| Administrator
 
-Manager <|-- SupportManager
-Manager <|-- Administrator
+    subgraph System[Система електронної комерції]
+        UC1[Реєстрація користувача]
+        UC2[Авторизація в системі]
+        UC3[Відновлення пароля]
+        UC4[Керування кошиком]
+        UC5[Оформлення замовлення]
+        UC6[Перевірка наявності товарів]
+        UC7[Бронювання товарів]
+        UC8[Створення платежу]
+        UC9[Оплата замовлення]
+        UC10[Скасування замовлення]
+        UC11[Перегляд статусу замовлення]
+        UC12[Створення звернення в підтримку]
+        UC13[Обробка звернення підтримкою]
+        UC14[Керування товарами та категоріями]
+        UC15[Передача замовлення службі доставки]
+        UC16[Трекінг посилки на стороні служби доставки]
+    end
 
-rectangle "Система електронної комерції" {
-  usecase "Реєстрація користувача" as UC1
-  usecase "Авторизація в системі" as UC2
-  usecase "Відновлення пароля" as UC3
-  usecase "Керування кошиком" as UC4
-  usecase "Оформлення замовлення" as UC5
-  usecase "Перевірка наявності товарів" as UC6
-  usecase "Бронювання товарів" as UC7
-  usecase "Створення платежу" as UC8
-  usecase "Оплата замовлення" as UC9
-  usecase "Скасування замовлення" as UC10
-  usecase "Перегляд статусу замовлення" as UC11
-  usecase "Створення звернення в підтримку" as UC12
-  usecase "Обробка звернення підтримкою" as UC13
-  usecase "Керування товарами та категоріями" as UC14
-  usecase "Передача замовлення службі доставки" as UC15
-  usecase "Трекінг посилки на стороні служби доставки" as UC16
-}
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC10
+    User --> UC11
+    User --> UC12
 
-User --> UC1
-User --> UC2
-User --> UC3
-User --> UC4
-User --> UC5
-User --> UC10
-User --> UC11
-User --> UC12
+    SupportManager --> UC13
+    Administrator --> UC14
+    Manager --> UC13
+    Manager --> UC14
 
-SupportManager --> UC13
-Administrator --> UC14
-Manager --> UC13
-Manager --> UC14
-
-UC5 ..> UC6 : <<include>>
-UC5 ..> UC7 : <<include>>
-UC5 ..> UC8 : <<include>>
-UC5 ..> UC9 : <<include>>
-UC5 ..> UC10 : <<extend>>
-UC2 ..> UC1 : <<extend>>
-UC2 ..> UC3 : <<extend>>
-UC12 ..> UC13 : <<include>>
-UC15 ..> Delivery : передає дані
-Delivery ..> UC16 : використовує
-Payment ..> UC9 : підтверджує оплату
-@enduml
+    UC5 -. includes .-> UC6
+    UC5 -. includes .-> UC7
+    UC5 -. includes .-> UC8
+    UC5 -. includes .-> UC9
+    UC5 -. extends .-> UC10
+    UC2 -. extends .-> UC1
+    UC2 -. extends .-> UC3
+    UC12 -. includes .-> UC13
+    UC15 -->|передає дані| Delivery
+    Delivery -. uses .-> UC16
+    Payment -. підтверджує оплату .-> UC9
 ```
 
 ## Опис основних use case
