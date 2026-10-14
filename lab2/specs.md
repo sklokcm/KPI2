@@ -79,5 +79,37 @@
         Тоді користувач підтверджує отримання відповіді
         І система змінює статус запиту на "closed"
 
+## Матриця трасування
+
+| ID вимоги | Вимога | Пов'язані use cases | Джерело / покриття |
+|---|---|---|---|
+| FR-01 | Користувач може авторизуватися через email або Google SSO | UC2 | Requirements / use case |
+| FR-02 | Користувач може зареєструватися в системі | UC1 | Requirements / use case |
+| FR-03 | Користувач може відновити пароль | UC3 | Requirements / use case |
+| FR-04 | Користувач може вийти з системи | UC2 | Requirements |
+| FR-05 | Користувач може працювати з кошиком | UC4 | Requirements / user story 1 |
+| FR-06 | Користувач може застосовувати промокод | UC12 | Requirements / use case |
+| FR-07 | Система блокує замовлення при відсутності товарів | UC5, UC6 | Requirements / user story 1 |
+| FR-08 | Система перевіряє наявність товарів і створює замовлення | UC5, UC6, UC7, UC8, UC9 | Requirements / user story 1 |
+| FR-09 | Користувач може переглядати статус замовлення і історію покупок | UC13 | Requirements |
+| FR-10 | Користувач може обрати спосіб оплати: онлайн або при отриманні | UC9, UC10, UC11 | Requirements / use case |
+| FR-11 | Платіжний сервіс не підтверджує оплату → статус failed і скасування/повернення | UC9, UC10 | Requirements |
+| FR-12 | Користувач може скасувати замовлення | UC13 | Requirements |
+| FR-13 | Користувач може створити запит у підтримку | UC14 | Requirements / user story 2 |
+| FR-14 | Менеджер підтримки обробляє запит і відповідає користувачу | UC15 | Requirements / user story 2 |
+| FR-15 | Менеджер передає замовлення службі доставки | UC17 | Requirements / use case |
+| FR-16 | Служба доставки отримує дані про замовлення | UC17 | Requirements / use case |
+| FR-17 | Адміністратор переглядає замовлення, користувачів і статистику | UC16 | Requirements |
+| NFR-01 | Паролі зберігаються в захищеному вигляді | — | Non-functional requirement |
+| NFR-02 | HTTPS і шифрування конфіденційних даних | — | Non-functional requirement |
+| NFR-03 | Інтуїтивний UI і доступність | — | Non-functional requirement |
+| NFR-04 | Локалізація українська/англійська | — | Non-functional requirement |
+| NFR-05 | Сумісність із браузерами | — | Non-functional requirement |
+| NFR-06 | Відсутність залежності від пропрієтарного ПЗ | — | Non-functional requirement |
+| NFR-07 | Захист від кібератак і збереження стану системи | — | Non-functional requirement |
+| NFR-08 | Відповідність навантаженню 2000 користувачів / 3с | — | Non-functional requirement |
+| NFR-09 | Автоматичне масштабування при зростанні навантаження | — | Non-functional requirement |
+| NFR-10 | Резервне копіювання і відновлення даних | — | Non-functional requirement |
+| NFR-11 | Автоматичне завершення неактивної сесії | — | Non-functional requirement |
 
 
