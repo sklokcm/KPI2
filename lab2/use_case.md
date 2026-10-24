@@ -4,8 +4,6 @@ flowchart LR
     Manager[Менеджер]
     SupportManager[Менеджер підтримки]
     Administrator[Адміністратор]
-    Delivery[Служба доставки]
-    Payment[Сервіс оплати]
 
     Manager ---|спеціалізація| SupportManager
     Manager ---|спеціалізація| Administrator
@@ -27,7 +25,6 @@ flowchart LR
         UC14[Створення звернення в підтримку]
         UC15[Обробка звернення підтримкою]
         UC16[Керування товарами та категоріями]
-        UC17[Передача замовлення службі доставки]
     end
 
     User --> UC1
@@ -40,7 +37,6 @@ flowchart LR
 
     SupportManager --> UC15
     Administrator --> UC16
-    Manager --> UC17
 
     UC5 -. includes .-> UC6
     UC5 -. includes .-> UC7
@@ -50,6 +46,4 @@ flowchart LR
     UC11 ---|спеціалізація| UC9
     UC12 -. extends .-> UC5
 
-    UC17 --> Delivery
-    UC10 --> Payment
 ```
