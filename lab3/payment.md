@@ -56,4 +56,4 @@ end
 
 deactivate OrderService
 @enduml
-![alt text](image.png)
+![alt text](payment.png)

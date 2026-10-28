@@ -14,8 +14,7 @@ activate AuthService
 AuthService --> OrderService : sessionStatus(active/inactive)
 deactivate AuthService
 
-alt Сесія активна
-else Неактивність понад 15 хвилин
+opt Неактивність понад 15 хвилин
     OrderService -> User : requestReauthentication()
     User -> OrderService : submitCredentials(credentials)
     OrderService -> AuthService : authenticate(credentials)
@@ -70,4 +69,4 @@ end
 
 deactivate OrderService
 @enduml
-![alt text](image-1.png)
+![alt text](order_creation_sequence.png)
