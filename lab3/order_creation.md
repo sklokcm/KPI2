@@ -2,61 +2,72 @@
 title Створення замовлення
 
 actor "Користувач" as User
-participant "Система" as System
-database "База даних складу" as Inventory
+participant "Сервіс замовлень\n(OrderService)" as OrderService
+participant "Сервіс автентифікації\n(AuthService)" as AuthService
+participant "Сервіс складу\n(StorageService)" as StorageService
 database "База даних системи" as Database
 
-User -> System : submitOrder(cart, deliveryAddress)
-activate System
-System -> System : checkSession()
+User -> OrderService : createOrder(cartId, deliveryAddress)
+activate OrderService
+OrderService -> AuthService : checkSession(userId)
+activate AuthService
+AuthService --> OrderService : sessionStatus(active/inactive)
+deactivate AuthService
 
 alt Сесія активна
-    System --> System : sessionValid
 else Неактивність понад 15 хвилин
-    System -> User : requestReauthentication()
-    User -> System : submitCredentials(credentials)
-    alt Авторизація успішна
-        System --> User : authenticationConfirmed
-    else Авторизація неуспішна
-        System --> User : orderCreationRejected(reason = authentication_required)
-        deactivate System
-        break Авторизація не пройдена
+    OrderService -> User : requestReauthentication()
+    User -> OrderService : submitCredentials(credentials)
+    OrderService -> AuthService : authenticate(credentials)
+    activate AuthService
+    AuthService --> OrderService : authenticationResult
+    deactivate AuthService
+
+    alt Автентифікація успішна
+    else Автентифікація неуспішна
+        break Автентифікацію не пройдено
+            OrderService --> User : orderCreationRejected(reason = authentication_failed)
         end
     end
 end
 
 loop Для кожної позиції кошика
-    System -> Inventory : checkAvailability(productId, quantity)
-    activate Inventory
-    Inventory --> System : availableQuantity
-    deactivate Inventory
+    OrderService -> StorageService : checkAvailability(productId, quantity)
+    activate StorageService
+    StorageService --> OrderService : availableQuantity
+    deactivate StorageService
 
-    break Запитана кількість більша за залишок
-        System --> User : orderCreationRejected(status = failed, reason = out_of_stock)
-        deactivate System
+    break Запитана кількість недоступна
+        OrderService --> User : orderCreationRejected(status = failed, reason = out_of_stock)
     end
 end
 
-System -> Inventory : reserveItems(cartItems)
-activate Inventory
-Inventory --> System : reservationResult
-deactivate Inventory
+OrderService -> StorageService : reserveItems(cartItems)
+activate StorageService
+StorageService --> OrderService : reservationResult
+deactivate StorageService
 
 alt Резервування успішне
-    System -> Database : createOrder(status = created, prices, deliveryAddress)
+    OrderService -> Database : createOrder(cartId, deliveryAddress, prices, status = created)
     activate Database
-    Database --> System : orderCreated(orderId)
-    System -> Database : clearCart(userId)
-    Database --> System : cartCleared
-    System -> Database : updateOrderStatus(orderId, pending)
-    Database --> System : statusUpdated
+    Database --> OrderService : orderCreated(orderId)
     deactivate Database
-    System --> User : orderCreated(orderId, status = pending)
+
+    OrderService -> Database : clearCart(cartId)
+    activate Database
+    Database --> OrderService : cartCleared
+    deactivate Database
+
+    OrderService -> Database : updateOrderStatus(orderId, pending)
+    activate Database
+    Database --> OrderService : orderStatusUpdated
+    deactivate Database
+
+    OrderService --> User : orderCreated(orderId, status = pending)
 else Резервування неуспішне
-    System --> User : orderCreationRejected(status = failed, reason = reservation_failed)
+    OrderService --> User : orderCreationRejected(status = failed, reason = reservation_failed)
 end
 
-deactivate System
+deactivate OrderService
 @enduml
-
-![alt text](image.png)
+![alt text](image-1.png)
