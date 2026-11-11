@@ -30,13 +30,14 @@ opt Неактивність понад 15 хвилин
     end
 end
 
-loop Для кожної позиції кошика
-    OrderService -> StorageService : checkAvailability(productId, quantity)
-    activate StorageService
-    StorageService --> OrderService : availableQuantity
-    deactivate StorageService
+OrderService -> StorageService : checkAvailability(cartItems)
+activate StorageService
+StorageService --> OrderService : availabilityResult
+deactivate StorageService
 
-    break Запитана кількість недоступна
+alt Товари є на складі
+else Товару немає на складі
+    break Одна або більше позицій недоступні
         OrderService --> User : orderCreationRejected(status = failed, reason = out_of_stock)
     end
 end
