@@ -33,6 +33,9 @@ endif
 |OrderService|
 if (Спосіб оплати = Онлайн?) then (Так)
     :Запитати платіжні дані;
+    |Користувач|
+    :Вводить платіжні дані;
+    |OrderService|
     :Передати платіжні дані до PaymentService;
     |PaymentService|
     :Відправити подію оплати до PaymentGateway; <<output>>
