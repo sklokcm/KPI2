@@ -5,6 +5,7 @@ title UC5.2 — Оплата замовлення та вибір способу
 |OrderService|
 |PromoService|
 |PaymentService|
+|StorageService|
 
 |OrderService|
 start
@@ -49,16 +50,21 @@ if (Спосіб оплати = Онлайн?) then (Так)
             stop
         else (Ні)
             :Повернути результат failed;
+            |OrderService|
             :Скасувати замовлення;
-            :Звільнити резервування товарів;
             :Повідомити користувача про помилку;
+            |StorageService|
+            :Звільнити резервування товарів;
             end
         endif
     else (Ні, таймаут)
+        |PaymentService|
         :Повернути помилку відсутності відповіді;
+        |OrderService|
         :Скасувати замовлення;
-        :Звільнити резервування;
         :Повідомити користувача про помилку;
+        |StorageService|
+        :Звільнити резервування;
         end
     endif
 else (При отриманні)
