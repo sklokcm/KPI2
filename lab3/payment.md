@@ -73,40 +73,5 @@ else Оплата при отриманні
 end
 
 deactivate OrderService
-
-opt Оплата при отриманні завершена
-    ... Кілька днів потому ...
-    Payment -> OrderService : paymentResult(orderId, success/failed)
-    activate OrderService
-
-    alt Оплату при отриманні підтверджено
-        OrderService -> Database : updatePaymentStatus(orderId, paid)
-        activate Database
-        Database --> OrderService : paymentStatusUpdated
-        OrderService -> Database : updateOrderStatus(orderId, Paid)
-        Database --> OrderService : orderStatusUpdated
-        deactivate Database
-        OrderService --> User : paymentConfirmed(orderId)
-    else Оплату при отриманні не підтверджено
-        OrderService -> Database : updatePaymentStatus(orderId, failed)
-        activate Database
-        Database --> OrderService : paymentStatusUpdated
-        OrderService -> Database : cancelOrder(orderId)
-        Database --> OrderService : orderCancelled
-        deactivate Database
-        OrderService --> User : paymentFailed(orderId, orderCancelled)
-
-        OrderService -> Delivery : returnShipment(orderId, trackingNumber)
-        activate Delivery
-        Delivery --> OrderService : shipmentReturned
-        deactivate Delivery
-        OrderService -> StorageService : releaseReservation(orderId)
-        activate StorageService
-        StorageService --> OrderService : reservationReleased
-        deactivate StorageService
-    end
-
-    deactivate OrderService
-end
 @enduml
 ![alt text](payment_sequence.png)
