@@ -10,7 +10,7 @@
 ## Шари і компоненти
 ### Внутрішні компоненти
 1. Web UI
-2. API (controlers)
+2. API Gateway(controlers)
 * AuthController
 * PaymentMethodController
 3. Services
@@ -19,6 +19,7 @@
 * StorageService
 * PromoService
 * PaymentService
+* NotificationService
 4. Data access(Repositories)
 * UserRepository
 * PaymentRepository
@@ -30,4 +31,7 @@
 2. DeliveryService API
 3. Email
 4. Google SSO service
-## Залежності
+## Залежності/Зв'язки
+* Пакети API, Services, Data Access межі Backend, WebUI та БД за межами бекенду, але в System.
+* Controller -> Service -> Repository пукнтрирною стрілкою. 
+* Порт SQlout до Бази даних, зв'язок lollipop.
