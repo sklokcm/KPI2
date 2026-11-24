@@ -1,86 +1,159 @@
 ## Діаграма компонентів
 @startuml
-left to right direction
-skinparam componentStyle rectangle
+!theme plain
+skinparam componentStyle uml2
 skinparam linetype ortho
-skinparam shadowing false
-hide stereotype
 
-title Компоненти системи онлайн-магазину
-
-package "System" {
-  () "HTTP/HTTPS API" as PublicAPI
-
-  package "UI" as UIPackage {
-    component "Web UI" as WebUI
-  }
-
-  package "Backend" {
-    package "API Gateway\n(Controllers)" as APIPackage {
-      component "AuthController" as AuthController
-      component "PaymentMethodController" as PaymentMethodController
-    }
-
-    package "Services" as ServicesPackage {
-      component "OrderService" as OrderService
-      component "AuthService" as AuthService
-      component "StorageService" as StorageService
-      component "PromoService" as PromoService
-      component "PaymentService" as PaymentService
-      component "NotificationService" as NotificationService
-    }
-
-    package "Data Access\n(Repositories)" as RepositoriesPackage {
-      component "UserRepository" as UserRepository
-      component "PaymentRepository" as PaymentRepository
-      component "OrderRepository" as OrderRepository
-      component "StorageRepository" as StorageRepository
-    }
-  }
-
-  () "SQL" as SQLContract
-  database "Database" as Database {
-    portout SQLout
-  }
+' Налаштування стилів для кращої візуалізації
+skinparam Package {
+    BackgroundColor<<layer>> #F9F9F9
+    BorderColor<<layer>> #A0A0A0
 }
 
-package "External Integrations" {
-  component "PaymentGateway" as PaymentGateway
-  component "DeliveryService API" as DeliveryService
-  component "Email" as Email
-  component "Google SSO service" as GoogleSSO
+' Користувач
+actor "Користувач" as User
+
+' Зовнішні інтеграції (поза System, не об'єднані в один пакет)
+package "Google SSO" {
+    [Google SSO Service] as GoogleSSO
+}
+package "Delivery API" {
+    [DeliveryService API] as DeliveryAPI
+}
+package "Notification Gateway" {
+    [Email/Push Service] as EmailPush
+}
+package "Payment Gateway" {
+    [PaymentGateway] as PaymentGW
 }
 
-' Контракти між UI, бекендом та базою даних
-WebUI ..> PublicAPI
-PublicAPI -- AuthController
-PublicAPI -- PaymentMethodController
+' МЕЖІ СИСТЕМИ
+node "System" {
 
-RepositoriesPackage ..> SQLContract
-Database::SQLout -- SQLContract
+    ' Шари Web UI та API
+    package "Web UI" <<layer>> {
+        [Web UI] as WebUI
+    }
 
-' Controller -> Service
-AuthController ..> AuthService
-PaymentMethodController ..> PaymentService
+    ' Вхідний порт (lollipop Rest API)
+    () "HTTP in" as HTTP_In
 
-' Service -> Repository
-AuthService ..> UserRepository
-PaymentService ..> PaymentRepository
-OrderService ..> OrderRepository
-StorageService ..> StorageRepository
+    package "API (controllers)" <<layer>> {
+        [Router] as Router
+        [AuthController] as AuthController
+        [PaymentMethodController] as PMController
+        [PaymentController] as PaymentController
+        [StorageController] as StorageController
+        [OrderController] as OrderController
+    }
 
-' Зовнішні інтеграції
-AuthService ..> GoogleSSO
-PaymentService ..> PaymentGateway
-OrderService ..> DeliveryService
-NotificationService ..> Email
+    ' Шар Services
+    package "Services" <<layer>> {
+        [AuthService] as AuthService
+        [OrderService] as OrderService
+        [StorageService] as StorageService
+        [PromoService] as PromoService
+        [PaymentService] as PaymentService
+        [NotificationService] as NotificationService
+    }
 
-' Приховані зв'язки тримають шари стопкою
-UIPackage -[hidden]down- APIPackage
-APIPackage -[hidden]down- ServicesPackage
-ServicesPackage -[hidden]down- RepositoriesPackage
-RepositoriesPackage -[hidden]down- Database
+    ' Шар Data Access
+    package "Data Access (Repositories)" <<layer>> {
+        [UserRepository] as UserRepository
+        [OrderRepository] as OrderRepository
+        [StorageRepository] as StorageRepository
+        [PaymentRepository] as PaymentRepository
+    }
+
+    ' База даних
+    package "Database" <<layer>> {
+        database "Shared DB" as DB
+    }
+    
+    ' Вихідний порт для БД
+    () "SQL out" as SQL_Out
+}
+
+' Інтерфейси/Порти (Лоліпопи) на межі системи
+() "Auth out" as Auth_Out
+() "Delivery out" as Delivery_Out
+() "Email/Push out" as EmailPush_Out
+() "PSP out" as PSP_Out
+
+' -----------------------------------------------------------------
+' Зв'язки та логіка (Потоки зверху вниз)
+' -----------------------------------------------------------------
+
+' Користувач -> Web UI
+User -down-> WebUI
+
+' Web UI -> HTTP In -> Router
+WebUI -down-> HTTP_In
+HTTP_In -down-> Router
+
+' Зв'язки всередині API (зв'язки від Router до контролерів)
+Router .down.> AuthController
+Router .down.> OrderController
+Router .down.> StorageController
+Router .down.> PaymentController
+Router .down.> PMController
+
+' 1. Auth потік
+AuthController .down.> AuthService
+AuthService .down.> UserRepository
+' Auth -> Google SSO (Lollipop)
+AuthService -left-> Auth_Out
+Auth_Out -(0- GoogleSSO : OAuth2
+
+' 2. Order потік
+OrderController .down.> OrderService
+OrderService .down.> OrderRepository
+OrderService .down.> NotificationService
+' Order -> Delivery API (Lollipop)
+OrderService -right-> Delivery_Out
+Delivery_Out -(0- DeliveryAPI : Delivery data
+
+' 3. Notification потік
+NotificationService -right-> EmailPush_Out
+EmailPush_Out -(0- EmailPush : Push/Email API
+
+' 4. Storage потік
+StorageController .down.> StorageService
+StorageService .down.> StorageRepository
+
+' 5. Payment & Promo потік
+PMController .down.> PaymentService
+PaymentController .down.> PromoService
+PaymentController .down.> PaymentService
+PromoService .right.> PaymentService
+PaymentService .down.> PaymentRepository
+' Payment -> Payment Gateway (Lollipop)
+PaymentController -left-> PSP_Out
+PSP_Out -(0- PaymentGW : PSP API
+
+' 6. Доступ до БД через порт SQL out (lollipop)
+UserRepository .down.> SQL_Out
+OrderRepository .down.> SQL_Out
+StorageRepository .down.> SQL_Out
+PaymentRepository .down.> SQL_Out
+SQL_Out -down(0- DB : JDBC/SQL
+
+' -----------------------------------------------------------------
+' Невидимі зв'язки для вирівнювання шарів (тримати стопкою)
+' -----------------------------------------------------------------
+WebUI -[hidden]down- Router
+AuthController -[hidden]down- AuthService
+OrderController -[hidden]down- OrderService
+StorageController -[hidden]down- StorageService
+PaymentController -[hidden]down- PaymentService
+
+AuthService -[hidden]down- UserRepository
+OrderService -[hidden]down- OrderRepository
+StorageService -[hidden]down- StorageRepository
+PaymentService -[hidden]down- PaymentRepository
+
+UserRepository -[hidden]down- DB
 
 @enduml
 
-
+![alt text](image.png)
