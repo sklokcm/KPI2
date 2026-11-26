@@ -5,8 +5,9 @@ skinparam componentStyle uml2
 skinparam packageStyle rectangle
 skinparam Linetype ortho
 
-' Користувач
+' Актори
 actor "Користувач" as User
+actor "Менеджер підтримки" as SupportManager
 
 ' ==========================================================
 ' ЗОВНІШНІ ІНТЕГРАЦІЇ (окремо, за межами системи)
@@ -48,6 +49,7 @@ package "System" {
             component "PaymentController" as PaymentController
             component "StorageController" as StorageController
             component "OrderController" as OrderController
+            component "SupportController" as SupportController
         }
 
         ' Шар 3: Services
@@ -57,6 +59,7 @@ package "System" {
             component "PromoService" as PromoService
             component "StorageService" as StorageService
             component "OrderService" as OrderService
+            component "SupportService" as SupportService
             component "NotificationService" as NotificationService
         }
 
@@ -66,6 +69,7 @@ package "System" {
             component "PaymentRepository" as PaymentRepository
             component "StorageRepository" as StorageRepository
             component "OrderRepository" as OrderRepository
+            component "SupportRepository" as SupportRepository
         }
     }
 
@@ -91,8 +95,9 @@ interface "PSP API" as IPSP
 ' ЗВ'ЯЗКИ ТА ЗАЛЕЖНОСТІ
 ' ==========================================================
 
-' 1. Користувач -> Web UI
+' 1. Актори -> Web UI
 User -down-> WebUI
+SupportManager -down-> WebUI
 
 ' 2. Web UI -> Контракт REST API -> Порт HTTP in -> Router
 WebUI -down-( IRest
@@ -105,6 +110,7 @@ Router .down.> PaymentMethodController
 Router .down.> PaymentController
 Router .down.> StorageController
 Router .down.> OrderController
+Router .down.> SupportController
 
 ' 4. Контролери -> Сервіси (пунктирні лінії)
 AuthController .down.> AuthService
@@ -113,16 +119,19 @@ PaymentController .down.> PaymentService
 PaymentController .down.> PromoService
 StorageController .down.> StorageService
 OrderController .down.> OrderService
+SupportController .down.> SupportService
 
 ' 5. Залежності всередині шару Services (пунктирні лінії)
 PromoService .right.> PaymentService
 OrderService .right.> NotificationService
+SupportService .right.> NotificationService
 
 ' 6. Сервіси -> Репозиторії (пунктирні лінії)
 AuthService .down.> UserRepository
 PaymentService .down.> PaymentRepository
 StorageService .down.> StorageRepository
 OrderService .down.> OrderRepository
+SupportService .down.> SupportRepository
 
 ' 7. Зовнішні інтеграції через порти (portout) та контракти Lollipop (суцільні лінії)
 AuthService -left-> Auth_Out
@@ -132,6 +141,10 @@ IAuth -left- GoogleSSO
 NotificationService -right-> EmailPush_Out
 EmailPush_Out -right-( IEmailPush
 IEmailPush -right- EmailPushService
+
+' Сповіщення акторів від зовнішнього сервісу Email/Push
+EmailPushService -up-> SupportManager
+EmailPushService -up-> User
 
 OrderService -right-> Delivery_Out
 Delivery_Out -right-( IDelivery
@@ -146,6 +159,7 @@ UserRepository -down-> SQL_Out
 PaymentRepository -down-> SQL_Out
 StorageRepository -down-> SQL_Out
 OrderRepository -down-> SQL_Out
+SupportRepository -down-> SQL_Out
 SQL_Out -down-( ISql
 ISql -down- DB
 
@@ -159,4 +173,4 @@ Services_Package -[hidden]down-> DataAccess_Package
 DataAccess_Package -[hidden]down-> DataBase_Layer
 
 @enduml
-![alt text](image-1.png)
+![alt text](image.png)

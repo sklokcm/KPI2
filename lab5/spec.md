@@ -20,6 +20,7 @@
 * PaymentController
 * StorageController
 * OrderController
+* SupportController
 3. Services
 * OrderService
 * AuthService
@@ -27,11 +28,13 @@
 * PromoService
 * PaymentService
 * NotificationService
+* SupportService
 4. Data access(Repositories)
 * UserRepository
 * PaymentRepository
 * OrderRepository
 * StorageRepository
+* SupportRepository
 5. Data Base
 ### Зовнішні інтеграції 
 1. PaymentGateway
@@ -56,3 +59,6 @@
 * PaymentController -> PromoService -> PaymentService і PaymentController -> PaymentService також PaymentMethodController -> PaymentService. PaymentService -> Payment Repository. 
 * PaymentController зв'язок через порт PSP out з PaymentGateway. Тип lollipop. 
 * Зв'язок від усіх репозиторіїв через порт SQLout до Бази даних, зв'язок lollipop.
+* Користувач створює замовлення через WebUI -> Router -> SupportController -> SupportService -> SupportRepository.
+* SupportService -> NotificationService -> Email/Push порт -> Менеджер підтримки отримує сповіщення.
+* Менеджер підтримки відправляє відповідь -> WebUI -> Router -> SupportController -> SupportService -> SupportRepository. SuportService -> NotificationService відправлється відповідь користувачеві.
