@@ -1,159 +1,162 @@
 ## Діаграма компонентів
-@startuml
-!theme plain
-skinparam componentStyle uml2
-skinparam linetype ortho
+@startuml "System Component Diagram"
 
-' Налаштування стилів для кращої візуалізації
-skinparam Package {
-    BackgroundColor<<layer>> #F9F9F9
-    BorderColor<<layer>> #A0A0A0
-}
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+skinparam Linetype ortho
 
 ' Користувач
 actor "Користувач" as User
 
-' Зовнішні інтеграції (поза System, не об'єднані в один пакет)
-package "Google SSO" {
-    [Google SSO Service] as GoogleSSO
-}
-package "Delivery API" {
-    [DeliveryService API] as DeliveryAPI
-}
-package "Notification Gateway" {
-    [Email/Push Service] as EmailPush
-}
-package "Payment Gateway" {
-    [PaymentGateway] as PaymentGW
-}
+' ==========================================================
+' ЗОВНІШНІ ІНТЕГРАЦІЇ (окремо, за межами системи)
+' ==========================================================
+component "Google SSO service" as GoogleSSO <<External>>
+component "Email/Push" as EmailPushService <<External>>
+component "DeliveryService API" as DeliveryService <<External>>
+component "PaymentGateway" as PaymentGateway <<External>>
 
-' МЕЖІ СИСТЕМИ
-node "System" {
+' ==========================================================
+' ГОЛОВНА МЕЖА СИСТЕМИ
+' ==========================================================
+package "System" {
 
-    ' Шари Web UI та API
-    package "Web UI" <<layer>> {
-        [Web UI] as WebUI
+    ' Шар 1: Web UI (за межами Backend, але в System)
+    package "Web UI" as WebUI_Layer {
+        component "Web UI" as WebUI
     }
 
-    ' Вхідний порт (lollipop Rest API)
-    () "HTTP in" as HTTP_In
+    ' Контракт на межі Backend (HTTP in)
+    interface "REST API" as IRest
 
-    package "API (controllers)" <<layer>> {
-        [Router] as Router
-        [AuthController] as AuthController
-        [PaymentMethodController] as PMController
-        [PaymentController] as PaymentController
-        [StorageController] as StorageController
-        [OrderController] as OrderController
+    ' Межі Backend
+    package "Backend" {
+
+        ' Порти на межі Backend
+        portin "HTTP in" as HTTP_In
+        portout "Auth out" as Auth_Out
+        portout "PSP out" as PSP_Out
+        portout "Email/Push out" as EmailPush_Out
+        portout "Delivery out" as Delivery_Out
+        portout "SQL out" as SQL_Out
+
+        ' Шар 2: API (controllers)
+        package "API (controllers)" as API_Package {
+            component "Router" as Router
+            component "AuthController" as AuthController
+            component "PaymentMethodController" as PaymentMethodController
+            component "PaymentController" as PaymentController
+            component "StorageController" as StorageController
+            component "OrderController" as OrderController
+        }
+
+        ' Шар 3: Services
+        package "Services" as Services_Package {
+            component "AuthService" as AuthService
+            component "PaymentService" as PaymentService
+            component "PromoService" as PromoService
+            component "StorageService" as StorageService
+            component "OrderService" as OrderService
+            component "NotificationService" as NotificationService
+        }
+
+        ' Шар 4: Data Access (Repositories)
+        package "Data Access (Repositories)" as DataAccess_Package {
+            component "UserRepository" as UserRepository
+            component "PaymentRepository" as PaymentRepository
+            component "StorageRepository" as StorageRepository
+            component "OrderRepository" as OrderRepository
+        }
     }
 
-    ' Шар Services
-    package "Services" <<layer>> {
-        [AuthService] as AuthService
-        [OrderService] as OrderService
-        [StorageService] as StorageService
-        [PromoService] as PromoService
-        [PaymentService] as PaymentService
-        [NotificationService] as NotificationService
-    }
+    ' Контракт на базу даних (SQL out)
+    interface "SQL / Database" as ISql
 
-    ' Шар Data Access
-    package "Data Access (Repositories)" <<layer>> {
-        [UserRepository] as UserRepository
-        [OrderRepository] as OrderRepository
-        [StorageRepository] as StorageRepository
-        [PaymentRepository] as PaymentRepository
+    ' Шар 5: Database (за межами Backend, але в System)
+    package "Data Base" as DataBase_Layer {
+        database "Data Base" as DB
     }
-
-    ' База даних
-    package "Database" <<layer>> {
-        database "Shared DB" as DB
-    }
-    
-    ' Вихідний порт для БД
-    () "SQL out" as SQL_Out
 }
 
-' Інтерфейси/Порти (Лоліпопи) на межі системи
-() "Auth out" as Auth_Out
-() "Delivery out" as Delivery_Out
-() "Email/Push out" as EmailPush_Out
-() "PSP out" as PSP_Out
+' ==========================================================
+' КОНТРАКТИ (LOLLIPOPS) НА МЕЖІ СИСТЕМИ ДЛЯ ЗОВНІШНІХ СЕРВІСІВ
+' ==========================================================
+interface "Google Auth API" as IAuth
+interface "Email/Push API" as IEmailPush
+interface "Delivery API" as IDelivery
+interface "PSP API" as IPSP
 
-' -----------------------------------------------------------------
-' Зв'язки та логіка (Потоки зверху вниз)
-' -----------------------------------------------------------------
 
-' Користувач -> Web UI
+' ==========================================================
+' ЗВ'ЯЗКИ ТА ЗАЛЕЖНОСТІ
+' ==========================================================
+
+' 1. Користувач -> Web UI
 User -down-> WebUI
 
-' Web UI -> HTTP In -> Router
-WebUI -down-> HTTP_In
-HTTP_In -down-> Router
+' 2. Web UI -> Контракт REST API -> Порт HTTP in -> Router
+WebUI -down-( IRest
+IRest -down- HTTP_In
+HTTP_In .down.> Router
 
-' Зв'язки всередині API (зв'язки від Router до контролерів)
+' 3. Router -> Контролери (пунктирні лінії всередині шару)
 Router .down.> AuthController
-Router .down.> OrderController
-Router .down.> StorageController
+Router .down.> PaymentMethodController
 Router .down.> PaymentController
-Router .down.> PMController
+Router .down.> StorageController
+Router .down.> OrderController
 
-' 1. Auth потік
+' 4. Контролери -> Сервіси (пунктирні лінії)
 AuthController .down.> AuthService
-AuthService .down.> UserRepository
-' Auth -> Google SSO (Lollipop)
-AuthService -left-> Auth_Out
-Auth_Out -(0- GoogleSSO : OAuth2
-
-' 2. Order потік
-OrderController .down.> OrderService
-OrderService .down.> OrderRepository
-OrderService .down.> NotificationService
-' Order -> Delivery API (Lollipop)
-OrderService -right-> Delivery_Out
-Delivery_Out -(0- DeliveryAPI : Delivery data
-
-' 3. Notification потік
-NotificationService -right-> EmailPush_Out
-EmailPush_Out -(0- EmailPush : Push/Email API
-
-' 4. Storage потік
-StorageController .down.> StorageService
-StorageService .down.> StorageRepository
-
-' 5. Payment & Promo потік
-PMController .down.> PaymentService
-PaymentController .down.> PromoService
+PaymentMethodController .down.> PaymentService
 PaymentController .down.> PaymentService
+PaymentController .down.> PromoService
+StorageController .down.> StorageService
+OrderController .down.> OrderService
+
+' 5. Залежності всередині шару Services (пунктирні лінії)
 PromoService .right.> PaymentService
+OrderService .right.> NotificationService
+
+' 6. Сервіси -> Репозиторії (пунктирні лінії)
+AuthService .down.> UserRepository
 PaymentService .down.> PaymentRepository
-' Payment -> Payment Gateway (Lollipop)
+StorageService .down.> StorageRepository
+OrderService .down.> OrderRepository
+
+' 7. Зовнішні інтеграції через порти (portout) та контракти Lollipop (суцільні лінії)
+AuthService -left-> Auth_Out
+Auth_Out -left-( IAuth
+IAuth -left- GoogleSSO
+
+NotificationService -right-> EmailPush_Out
+EmailPush_Out -right-( IEmailPush
+IEmailPush -right- EmailPushService
+
+OrderService -right-> Delivery_Out
+Delivery_Out -right-( IDelivery
+IDelivery -right- DeliveryService
+
 PaymentController -left-> PSP_Out
-PSP_Out -(0- PaymentGW : PSP API
+PSP_Out -left-( IPSP
+IPSP -left- PaymentGateway
 
-' 6. Доступ до БД через порт SQL out (lollipop)
-UserRepository .down.> SQL_Out
-OrderRepository .down.> SQL_Out
-StorageRepository .down.> SQL_Out
-PaymentRepository .down.> SQL_Out
-SQL_Out -down(0- DB : JDBC/SQL
+' 8. Репозиторії -> порт SQL out -> контракт Lollipop -> База даних (суцільні лінії)
+UserRepository -down-> SQL_Out
+PaymentRepository -down-> SQL_Out
+StorageRepository -down-> SQL_Out
+OrderRepository -down-> SQL_Out
+SQL_Out -down-( ISql
+ISql -down- DB
 
-' -----------------------------------------------------------------
-' Невидимі зв'язки для вирівнювання шарів (тримати стопкою)
-' -----------------------------------------------------------------
-WebUI -[hidden]down- Router
-AuthController -[hidden]down- AuthService
-OrderController -[hidden]down- OrderService
-StorageController -[hidden]down- StorageService
-PaymentController -[hidden]down- PaymentService
 
-AuthService -[hidden]down- UserRepository
-OrderService -[hidden]down- OrderRepository
-StorageService -[hidden]down- StorageRepository
-PaymentService -[hidden]down- PaymentRepository
-
-UserRepository -[hidden]down- DB
+' ==========================================================
+' ПРИХОВАНІ ЗВ'ЯЗКИ ДЛЯ УТРИМАННЯ ШАРІВ СТОПКОЮ
+' ==========================================================
+WebUI_Layer -[hidden]down-> API_Package
+API_Package -[hidden]down-> Services_Package
+Services_Package -[hidden]down-> DataAccess_Package
+DataAccess_Package -[hidden]down-> DataBase_Layer
 
 @enduml
-
-![alt text](image.png)
+![alt text](image-1.png)
