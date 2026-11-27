@@ -35,6 +35,7 @@ package "System" {
 
         ' Порти на межі Backend
         portin "HTTP in" as HTTP_In
+        portin "Webhook in" as Webhook_In
         portout "Auth out" as Auth_Out
         portout "PSP out" as PSP_Out
         portout "Email/Push out" as EmailPush_Out
@@ -47,6 +48,7 @@ package "System" {
             component "AuthController" as AuthController
             component "PaymentMethodController" as PaymentMethodController
             component "PaymentController" as PaymentController
+            component "PaymentWebhookController" as PaymentWebhookController
             component "StorageController" as StorageController
             component "OrderController" as OrderController
             component "SupportController" as SupportController
@@ -89,6 +91,7 @@ interface "Google Auth API" as IAuth
 interface "Email/Push API" as IEmailPush
 interface "Delivery API" as IDelivery
 interface "PSP API" as IPSP
+interface "Webhook API" as IWebhook
 
 
 ' ==========================================================
@@ -104,7 +107,13 @@ WebUI -down-( IRest
 IRest -down- HTTP_In
 HTTP_In .down.> Router
 
-' 3. Router -> Контролери (пунктирні лінії всередині шару)
+' 3. Зовнішні сервіси (PaymentGateway, DeliveryService API) -> Webhook in -> PaymentWebhookController
+PaymentGateway -right-( IWebhook
+DeliveryService -left-( IWebhook
+IWebhook -down- Webhook_In
+Webhook_In .down.> PaymentWebhookController
+
+' 4. Router -> Контролери (пунктирні лінії всередині шару)
 Router .down.> AuthController
 Router .down.> PaymentMethodController
 Router .down.> PaymentController
@@ -112,28 +121,31 @@ Router .down.> StorageController
 Router .down.> OrderController
 Router .down.> SupportController
 
-' 4. Контролери -> Сервіси (пунктирні лінії)
+' 5. Контролери -> Сервіси (пунктирні лінії)
 AuthController .down.> AuthService
 PaymentMethodController .down.> PaymentService
 PaymentController .down.> PaymentService
 PaymentController .down.> PromoService
+PaymentWebhookController .down.> PaymentService
+PaymentWebhookController .down.> OrderService
 StorageController .down.> StorageService
 OrderController .down.> OrderService
 SupportController .down.> SupportService
 
-' 5. Залежності всередині шару Services (пунктирні лінії)
+' 6. Залежності всередині шару Services (пунктирні лінії)
 PromoService .right.> PaymentService
+PaymentService .right.> NotificationService
 OrderService .right.> NotificationService
 SupportService .right.> NotificationService
 
-' 6. Сервіси -> Репозиторії (пунктирні лінії)
+' 7. Сервіси -> Репозиторії (пунктирні лінії)
 AuthService .down.> UserRepository
 PaymentService .down.> PaymentRepository
 StorageService .down.> StorageRepository
 OrderService .down.> OrderRepository
 SupportService .down.> SupportRepository
 
-' 7. Зовнішні інтеграції через порти (portout) та контракти Lollipop (суцільні лінії)
+' 8. Зовнішні інтеграції через вихідні порти (portout) та контракти Lollipop (суцільні лінії)
 AuthService -left-> Auth_Out
 Auth_Out -left-( IAuth
 IAuth -left- GoogleSSO
@@ -154,7 +166,7 @@ PaymentController -left-> PSP_Out
 PSP_Out -left-( IPSP
 IPSP -left- PaymentGateway
 
-' 8. Репозиторії -> порт SQL out -> контракт Lollipop -> База даних (суцільні лінії)
+' 9. Репозиторії -> порт SQL out -> контракт Lollipop -> База даних (суцільні лінії)
 UserRepository -down-> SQL_Out
 PaymentRepository -down-> SQL_Out
 StorageRepository -down-> SQL_Out
@@ -173,4 +185,4 @@ Services_Package -[hidden]down-> DataAccess_Package
 DataAccess_Package -[hidden]down-> DataBase_Layer
 
 @enduml
-![alt text](image.png)
+![alt text](components.png)

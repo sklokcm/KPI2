@@ -21,6 +21,7 @@
 * StorageController
 * OrderController
 * SupportController
+* PaymentWebhookController
 3. Services
 * OrderService
 * AuthService
@@ -43,6 +44,7 @@
 4. Google SSO service
 ## Порти
 * HTTP in
+* webhook in
 * Delivery out
 * Auth out
 * Email/Push out
@@ -58,6 +60,9 @@
 * StorageController -> StorageService -> Storage Repository.
 * PaymentController -> PromoService -> PaymentService і PaymentController -> PaymentService також PaymentMethodController -> PaymentService. PaymentService -> Payment Repository. 
 * PaymentController зв'язок через порт PSP out з PaymentGateway. Тип lollipop. 
+* PaymentGateway -> Webhook in(зв'язок Lollipop) -> PaymentWebhookController -> PaymentService.
+* PaymentService -> NotificationService повідомляє про оплату чи невдачу.
+* DeliveryServiceAPI -> webhook in -> PaymentWebhookController -> OrderService при отрманні посилки.
 * Зв'язок від усіх репозиторіїв через порт SQLout до Бази даних, зв'язок lollipop.
 * Користувач створює замовлення через WebUI -> Router -> SupportController -> SupportService -> SupportRepository.
 * SupportService -> NotificationService -> Email/Push порт -> Менеджер підтримки отримує сповіщення.
